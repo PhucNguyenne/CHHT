@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="static/Pictures/Group_2.png"/>
+    <link rel="stylesheet" href="static/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <title>Dự Báo Thời Tiết</title>
+</head>
+<body>
+    <div id="header">
+        <div class="left-panel-header">
+            <div class="logo">
+                <img id="nen-logo" src="static/Pictures/Group_2.png" alt="Nen Logo" />
+                <img id="Sunlight-logo" src="static/Pictures/SUNLIGHT.png" alt="Sunlight Logo" />
+            </div>
+        </div>
+        <div class="right-panel-header">
+            <input type="text" id="city" placeholder="Nhập tên thành phố">
+            <button id="search-btn" onclick="getData()">Tìm Kiếm</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="rectangle" id="weather-info1">
+            <h1 id="initial-message">DỰ BÁO THỜI TIẾT</h1>
+        </div>
+        <div class="rectangle" id="weather-info2" style="display: none;">
+            <p class="date-time" id="current-date">{{ current_weather.date }}</p>
+            <h1 id="location">{{ current_weather.location }}</h1>
+            <div class="weather-info2">
+                <img class="Icon" id="weather-icon" src="https:{{ current_weather.icon }}" alt="weather icon" />
+                <p class="nhiet-do" id="temperature">{{ current_weather.temp_c }}°C</p>
+            </div>
+            <button class="forecast-button" onclick="showForecast()">Thời tiết 7 ngày tiếp theo</button>
+            <div id="sevendays" class="sevendays">
+                <div class="sevendays-content">
+                    <button class="close-btn" onclick="closeModal()">X</button>
+                    <h2>THỜI TIẾT 7 NGÀY SẮP TỚI</h2>
+                    <table id="bangnhietdo">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th><img class="Icon" src="static/Icon/Weather/max_tpt.svg" alt="max_tpt icon" width="26px"/></th>
+                                <th><img class="Icon" src="static/Icon/Weather/min_tpt.svg" alt="min_tpt icon" /></th>
+                                <th><img class="Icon" src="static/Icon/thermometer.png" alt="avg_tpt icon" width="26px"/></th>
+                                <th><img class="Icon" src="static/Icon/Weather/rain.svg" alt="precip_type icon" width="26px"/></th>
+                            </tr>
+                        </thead>
+                        <tbody id="forecast-data"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <script>
+                function showForecast() {
+                    const city = document.getElementById('city').value;
+                    fetch('/forecast', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ city: city })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const forecastData = document.getElementById('forecast-data');
+                        forecastData.innerHTML = '';
+
+                        data.forEach(day => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${day.date}</td>
+                                <td>${day.tempmax.toFixed(2)}°C</td>
+                                <td>${day.tempmin.toFixed(2)}°C</td>
+                                <td>${day.temp.toFixed(2)}°C</td>
+                                <td>${day.precip_type}</td>
+                            `;
+                            forecastData.appendChild(row);
+                        });
+
+                        document.getElementById('sevendays').style.display = 'block';
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+
+                function closeModal() {
+                    document.getElementById('sevendays').style.display = 'none';
+                }
+            </script>
+        </div>
+        <div class="map_container">       
+            <div id="map"></div>
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            <script>
+                const map = L.map('map').setView([15.5, 107.5], 6);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+            </script>
+        </div>
+    </div>
+
+    <script>
+        function getData() {
+            const city = document.getElementById('city').value;
+            document.getElementById('sevendays').style.display = 'none';
+            fetch('/weather', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ city: city })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Không tìm thấy thành phố!');
+            })
+            .then(data => {
+                document.getElementById('weather-info1').style.display = 'none';
+                document.getElementById('weather-info2').style.display = 'block';
+                
+                document.getElementById('location').innerText = data.location;
+                document.getElementById('temperature').innerText = `${data.temp_c}°C`;
+                document.getElementById('weather-icon').src = `https:${data.icon}`;
+                document.getElementById('current-date').innerText = data.date;
+                map.setView([data.lat, data.lon], 10);
+            })
+            .catch(error => {
+                alert(error.message);
+            });
+        }
+    </script>
+
+    <!-- Đường link pop-up -->
+    <script src="static/JavaScript/pop-up.js"></script>
+</body>
+</html>

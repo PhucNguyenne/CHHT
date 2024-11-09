@@ -1,0 +1,274 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* header */
+#header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+/* left-panel */
+.left-panel-header {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  position: relative;
+  width: 200px; 
+  height: 100px;
+}
+
+#nen-logo,
+#Sunlight-logo {
+  position: absolute;
+}
+
+#nen-logo {
+  top: 20px; 
+  left: 20px;
+  width: 450px; 
+  height: auto; 
+}
+
+#Sunlight-logo {
+  top: 90px; 
+  left: 120px; 
+  width: 250px; 
+  height: auto;
+  z-index: 1; 
+}
+
+/* right-panel */
+.right-panel-header {
+  display: flex;
+  align-items: center;
+}
+:root {
+--rad: 20px;
+--dur: .2s;
+--color-dark: #8EACCD;
+--color-light: #FEF9D9;
+--color-brand: #D2E0FB;
+--font-fam: 'Lato', sans-serif;
+--height: 40px;
+--btn-width: 70px;
+--bez: cubic-bezier(0, 0, 0.43, 1.49);
+}
+
+.right-panel-header{
+position: absolute;
+display: flex;
+margin-left: 100rem;
+margin-top: 3rem;
+}
+
+#city{
+top: 25%;
+left: 15%;
+padding: 10px 150px 10px 20px;
+outline:#000;
+border-radius: 3px;
+border: 1px solid #B0C4DE;
+height: 55px;
+width: 400px;
+font-size: medium;
+}
+
+#search-btn{
+top: 25%;
+left: 35%;
+padding: 10px 20px;
+border: 0px;
+background-color: white;
+color: #8EACCD;
+cursor: pointer;
+height: 55px;
+border-radius: 3px;
+margin-left: 1px;
+font-size: medium;
+font-weight: bolder;
+}
+
+#search-btn:hover{
+background-color: #B0C4DE;
+color: white;
+}
+
+/* container */
+.container {
+  display: flex;
+  width: 100%;
+}
+
+/* Thiết kế hình chữ nhật */
+.rectangle {
+background-color: #EBF4F6; /* Màu nền */
+width: 100%; 
+max-width: 75rem; 
+height: 30rem;
+padding: 24px; 
+border-radius: 10px; 
+box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);
+position: fixed; 
+margin-top: 350px;
+margin-left: 130px;
+text-align: left;
+font-family: 'Courier New', Courier, monospace;
+}
+
+/* Tiêu đề */
+.rectangle h1 {
+font-size: 96px;
+color: #000;
+font-weight: bolder;
+margin-top: 5px;
+margin-left: 40px;
+}
+
+/* Các chi tiết phụ */
+.rectangle .date-time {
+font-size: 28px;
+color: #3A6D8C;
+margin-top: 82px;
+font-weight: bolder;
+margin-left: 40px;
+}
+
+.weather-info1 {
+display: flex;
+align-self: start;
+margin-left: 40px;
+}
+.weather-info2 {
+  display: flex;
+  align-self: start;
+  margin-left: 40px;
+}
+
+.weather-info2 .nhiet-do{
+font-weight: bolder;
+color: #000;
+font-size: 64px;
+}
+
+.weather-info2 img {
+  width: 70px;
+  height: 70px;
+  margin-right: 20px; /* Thêm khoảng cách giữa icon và nhiệt độ */
+}
+
+/* button */
+.forecast-button {
+margin-top: 1rem;
+padding: 0.8rem 1.2rem;
+width: 30rem;
+background-color: #8EACCD;
+color: #fff;
+border-radius: 30px;
+border: none;
+cursor: pointer;
+font-size: 20px;
+position: absolute;
+font-family: 'Courier New', Courier, monospace;
+font-weight:bolder;
+margin-left: 30rem;
+margin-top: 3rem;
+cursor: pointer;
+}
+
+.forecast-button:hover {
+background-color: #25316D;
+}
+
+/* trang pop-up */
+.sevendays {
+  display: none; /* Ẩn modal ban đầu */
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Nền tối mờ */
+}
+
+.sevendays-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 20px;
+  width: 80%;
+  max-width: 700px;
+  border-radius: 8px;
+  text-align: center;
+  margin-right: 80rem;
+}
+
+.sevendays .sevendays-content h2{
+  font-size: 40px;
+  padding-bottom: 10px;
+  font-weight: bolder;
+  line-height: 1.5;
+}
+
+.close-btn {
+  background-color: #1C2938;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  float: right;
+  border-radius: 19px;
+}
+
+.close-btn:hover{
+  background-color: #8EACCD;
+}
+
+/* bảng nhiệt độ */
+table{
+    width: 100%; /* Bảng chiếm 100% chiều rộng */
+    border-collapse: collapse; /* Gộp các đường viền lại */
+    margin-top: 20px; /* Khoảng cách phía trên bảng */
+    border-radius: 10px;
+    align-items: center;
+}
+
+thead{
+    background-color: #D2E0FB;
+    align-items: center;
+}
+
+table, th, td{
+  line-height: 1.5;
+  font-size: 20px;
+  padding: 5px;
+  font-weight: bolder;
+}
+/* css map ------ */
+.map_container{
+    position: relative;
+    margin-left: 10rem;
+}
+
+#map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 900px;
+  height: 900px;
+  z-index: 10; /* Đảm bảo bản đồ nổi lên trên các phần tử khác */
+  border-radius: 10px; /* Bo góc mềm mại */
+  margin-left: 70rem;
+  margin-top: 1rem;
+}
+.rectangle #initial-message{
+  padding: 20px;
+  margin-top: 9rem;
+  color: #1C2938;
+}
