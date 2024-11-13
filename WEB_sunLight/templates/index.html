@@ -6,6 +6,8 @@
     <link rel="shortcut icon" type="image/png" href="static/Pictures/Group_2.png"/>
     <link rel="stylesheet" href="static/index.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <title>Dự Báo Thời Tiết</title>
 </head>
 <body>
@@ -37,6 +39,10 @@
                 <div class="sevendays-content">
                     <button class="close-btn" onclick="closeModal()">X</button>
                     <h2>THỜI TIẾT 7 NGÀY SẮP TỚI</h2>
+                    
+                    <!-- Biểu đồ -->
+                    <canvas id="weatherChart" width="400" height="200"></canvas>
+                    
                     <table id="bangnhietdo">
                         <thead>
                             <tr>
@@ -51,8 +57,11 @@
                     </table>
                 </div>
             </div>
+            
 
             <script>
+                let weatherChart;  // Khai báo biến ở phạm vi bên ngoài
+            
                 function showForecast() {
                     const city = document.getElementById('city').value;
                     fetch('/forecast', {
@@ -66,7 +75,7 @@
                     .then(data => {
                         const forecastData = document.getElementById('forecast-data');
                         forecastData.innerHTML = '';
-
+            
                         data.forEach(day => {
                             const row = document.createElement('tr');
                             row.innerHTML = `
@@ -78,16 +87,67 @@
                             `;
                             forecastData.appendChild(row);
                         });
-
+            
+                        // Hiển thị pop-up
                         document.getElementById('sevendays').style.display = 'block';
+            
+                        // Xóa biểu đồ cũ nếu tồn tại
+                        if (weatherChart) {
+                            weatherChart.destroy();
+                        }
+            
+                        // Tạo biểu đồ mới
+                        const ctx = document.getElementById('weatherChart').getContext('2d');
+                        weatherChart = new Chart(ctx, {
+                            type: 'line', // Loại biểu đồ
+                            data: {
+                                labels: data.map(day => day.date), // Ngày là nhãn
+                                datasets: [{
+                                    label: 'Nhiệt độ tối đa (°C)',
+                                    data: data.map(day => day.tempmax), // Dữ liệu nhiệt độ tối đa
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    fill: false
+                                },
+                                {
+                                    label: 'Nhiệt độ tối thiểu (°C)',
+                                    data: data.map(day => day.tempmin), // Dữ liệu nhiệt độ tối thiểu
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    fill: false
+                                },
+                                {
+                                    label: 'Nhiệt độ trung bình (°C)',
+                                    data: data.map(day => day.temp), // Dữ liệu nhiệt độ trung bình
+                                    borderColor: 'rgba(0, 128, 0, 1)',
+                                    fill: false
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    x: {
+                                        title: { display: true, text: 'Ngày' }
+                                    },
+                                    y: {
+                                        title: { display: true, text: 'Nhiệt độ (°C)' }
+                                    }
+                                }
+                            }
+                        });
                     })
                     .catch(error => console.error('Error:', error));
                 }
-
+            
                 function closeModal() {
                     document.getElementById('sevendays').style.display = 'none';
+            
+                    // Xóa biểu đồ khi đóng pop-up
+                    if (weatherChart) {
+                        weatherChart.destroy();
+                        weatherChart = null;  // Đặt về null để sẵn sàng tạo mới
+                    }
                 }
             </script>
+            
         </div>
         <div class="map_container">       
             <div id="map"></div>
