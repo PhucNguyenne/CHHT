@@ -1,0 +1,7 @@
+flask
+requests
+pandas
+numpy
+scikit-learn
+unidecode
+matplotlib

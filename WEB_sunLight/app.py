@@ -4,11 +4,12 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, accuracy_score, classification_report, confusion_matrix
 from unidecode import unidecode
 import matplotlib.pyplot as plt
 import io
 import base64
+from sklearn.metrics import mean_squared_error, accuracy_score, confusion_matrix
+
 
 app = Flask(__name__)
 
@@ -65,12 +66,7 @@ def predict_weather(data, start_date=None):
     if start_date is None:
         start_date = datetime.now().strftime('%Y-%m-%d')
     
-    # Danh sách các cột (features) cần thiết
-    features = ['tempmax', 'tempmin', 'humidity', 'feelslikemax', 'feelslikemin',
-                'dew', 'precip', 'precipprob', 'snow', 'snowdepth', 'windgust',
-                'windspeed', 'winddir', 'sealevelpressure', 'cloudcover', 'visibility',
-                'solarradiation', 'solarenergy', 'uvindex', 'moonphase']
-    
+    features = ['tempmax', 'tempmin', 'humidity']
     target_tempmax = 'tempmax'
     target_tempmin = 'tempmin'
     target_precip_type = 'preciptype'
@@ -79,14 +75,13 @@ def predict_weather(data, start_date=None):
     if not all(col in data.columns for col in features + [target_tempmax, target_tempmin, target_precip_type, 'datetime']):
         print("Data is insufficient for prediction.")
         return []
-    
-    # Xử lý giá trị NaN cho cột preciptype
-    data['preciptype'] = data['preciptype'].fillna('sun')
-    data = data.ffill().bfill()
+
+    # Xử lý giá trị NaN cho cột precip_type
+    data[target_precip_type] = data[target_precip_type].fillna("sun")  # Thay thế NaN bằng "none"
 
     # Chuyển đổi cột 'datetime' thành kiểu ngày tháng
     data['datetime'] = pd.to_datetime(data['datetime'], errors='coerce')
-    data = data.dropna(subset=['datetime'])
+    data = data.dropna(subset=['datetime'])  # Bỏ các hàng không có ngày tháng hợp lệ
 
     # Huấn luyện mô hình dự đoán nhiệt độ
     model_tempmax = RandomForestRegressor(n_estimators=100, random_state=42, oob_score=True)
@@ -100,9 +95,8 @@ def predict_weather(data, start_date=None):
     model_tempmin.fit(X, y_tempmin)
 
     # Huấn luyện mô hình dự đoán loại mưa
-    model_precip = RandomForestClassifier(n_estimators=300, oob_score=True, random_state=42, class_weight='balanced')
-
-    model_precip.fit(X, data["preciptype"])
+    model_precip = RandomForestClassifier(n_estimators=100, random_state=42, oob_score=True)
+    model_precip.fit(X, data[target_precip_type])
 
     predictions = []
     last_row = data.iloc[-1]
@@ -111,46 +105,17 @@ def predict_weather(data, start_date=None):
     # Dự đoán thời tiết cho 7 ngày tiếp theo
     for i in range(1, 8):
         next_date = start_date + pd.Timedelta(days=i)
-        
-        # Tạo new_data dựa trên các cột features
         new_data = pd.DataFrame({
-        'tempmax': [last_row['tempmax'] + np.random.uniform(-2, 2)],
-        'tempmin': [last_row['tempmin'] + np.random.uniform(-2, 2)],
-        'humidity': [last_row['humidity'] + np.random.uniform(-10, 10)],
-        'feelslikemax': [last_row['feelslikemax'] + np.random.uniform(-2, 2)],
-        'feelslikemin': [last_row['feelslikemin'] + np.random.uniform(-2, 2)],
-        'dew': [last_row['dew'] + np.random.uniform(-1, 1)],
-        'precip': [last_row['precip'] + np.random.uniform(-0.5, 0.5)],
-        'precipprob': [last_row['precipprob'] + np.random.uniform(-5, 5)],
-        'snow': [last_row['snow'] + np.random.uniform(-0.5, 0.5)],
-        'snowdepth': [last_row['snowdepth'] + np.random.uniform(-0.5, 0.5)],
-        'windgust': [last_row['windgust'] + np.random.uniform(-1, 1)],
-        'windspeed': [last_row['windspeed'] + np.random.uniform(-2, 2)],
-        'winddir': [last_row['winddir'] + np.random.uniform(-5, 5)],
-        'sealevelpressure': [last_row['sealevelpressure'] + np.random.uniform(-1, 1)],
-        'cloudcover': [last_row['cloudcover'] + np.random.uniform(-5, 5)],
-        'visibility': [last_row['visibility'] + np.random.uniform(-1, 1)],
-        'solarradiation': [last_row['solarradiation'] + np.random.uniform(-10, 10)],
-        'solarenergy': [last_row['solarenergy'] + np.random.uniform(-10, 10)],
-        'uvindex': [last_row['uvindex'] + np.random.uniform(-1, 1)],
-        'moonphase': [last_row['moonphase'] + np.random.uniform(-0.1, 0.1)]
-    })
+            'tempmax': [last_row['tempmax'] + np.random.uniform(-2, 2)],
+            'tempmin': [last_row['tempmin'] + np.random.uniform(-2, 2)],
+            'humidity': [last_row['humidity'] + np.random.uniform(-10, 10)]
+        })
 
-        # Thêm các cột còn thiếu với giá trị mặc định từ last_row
-        for col in features:
-            if col not in new_data.columns:
-                new_data[col] = last_row[col]
-
-        # Sắp xếp lại thứ tự cột để khớp với mô hình
-        new_data = new_data[features]
-
-
-        # Dự đoán nhiệt độ
         predicted_tempmax = model_tempmax.predict(new_data)[0]
         predicted_tempmin = model_tempmin.predict(new_data)[0]
         predicted_temp = (predicted_tempmax + predicted_tempmin) / 2
 
-        # Dự đoán loại mưa
+        # Dự đoán precip_type dựa trên mô hình
         predicted_precip_type = model_precip.predict(new_data)[0]
 
         predictions.append({
@@ -160,21 +125,17 @@ def predict_weather(data, start_date=None):
             'temp': predicted_temp,
             'precip_type': predicted_precip_type
         })
-        
-    print("OOB score of tempmax: ", model_tempmax.oob_score_)
-    print("OOB score of tempmin: ", model_tempmin.oob_score_)
-    print("OOB score of precip_type: ", model_precip.oob_score_)
-
-    # Đánh giá mô hình hồi quy
     y_pred_tempmax = model_tempmax.predict(X)
     print("MSE for tempmax:", mean_squared_error(y_tempmax, y_pred_tempmax))
     y_pred_tempmin = model_tempmin.predict(X)
-    print("MSE for tempmax:", mean_squared_error(y_tempmin, y_pred_tempmin))
+    print("MSE for tempmin:", mean_squared_error(y_tempmin, y_pred_tempmin))
     # Đánh giá mô hình phân loại
     y_pred_precip = model_precip.predict(X)
     print("Accuracy for preciptype:", accuracy_score(data["preciptype"], y_pred_precip))
     print("Confusion Matrix for preciptype:\n", confusion_matrix(data["preciptype"], y_pred_precip))
-        
+    print("OOB score of tempmax: ", model_tempmax.oob_score_)
+    print("OOB score of tempmin: ", model_tempmin.oob_score_)
+    print("OOB score of precip_type: ", model_precip.oob_score_)
     return predictions
 
 
